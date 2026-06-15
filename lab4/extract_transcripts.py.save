@@ -30,10 +30,10 @@ def main():
         # TODO:  Use YouTubeTranscriptApi with a keyword argument proxy_config.
         #    Use WebshareProxyConfig to create the proxy using the username and password
         ytt_api = YouTubeTranscriptApi(
-            proxy_config=WebshareProxyConfig(
-                proxy_username=proxy_user,
-                proxy_password=proxy_pass,
-            )
+                proxy_config=WebshareProxyConfig(
+			proxy_username=proxy_user,
+			proxy_password=proxy_pass,
+		)
         )
     else:
         logging.warning("No proxy credentials found. Running with direct raw local IP routing.")
@@ -61,8 +61,6 @@ def main():
             #    Then use sys.stdout to write that to console
             #    Finally, flush the stdout 
             payload = {"video_id": video_id, "raw_text": raw_text}
-            sys.stdout.write(json.dumps(payload) + "\n")
-            sys.stdout.flush()
             
         except Exception as e:
             logging.error(f"Failed to fetch YouTube transcript for {video_id}: {str(e)}")
