@@ -12,3 +12,6 @@ lint:
 
 test: lint
 	. env/bin/activate; pytest -vv tests
+
+test_enrich:
+	@. env/bin/activate && cat mock_transcripts.jsonl | python -u lab5/enrich_transcripts.py | python lab5/validate_schema.py
