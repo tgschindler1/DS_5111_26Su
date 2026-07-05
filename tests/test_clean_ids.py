@@ -5,7 +5,7 @@ import sys
 import io
 import platform
 import pytest
-from lib.clean_ids import main
+from bin.clean_ids import main
 
 
 def test_script_execution(monkeypatch, capsys):

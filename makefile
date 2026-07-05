@@ -21,4 +21,4 @@ test: lint
 	$(PYTEST) -vv tests
 
 test_enrich:
-	cat mock_transcripts.jsonl | $(PYTHON) -u bin/enrich_transcripts.py | $(PYTHON) bin/validate_schema.py
+	cat data/mock_transcripts.jsonl | $(PYTHON) -u bin/enrich_transcripts.py | $(PYTHON) bin/validate_schema.py
