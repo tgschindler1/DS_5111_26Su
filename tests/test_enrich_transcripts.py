@@ -10,7 +10,7 @@ from google.genai.models import Models
 from bin.enrich_transcripts import main
 
 
-class MockGeminiResponse:
+class MockGeminiResponse: # pylint: disable=too-few-public-methods
     """Mimics the Gemini SDK response object, exposing a .text attribute."""
 
     def __init__(self, text_payload):
