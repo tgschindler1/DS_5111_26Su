@@ -93,7 +93,8 @@ def main():
         print(f"🔴 Failure: {failed_records}/{total_records} records violated the schema contract.")
         sys.exit(1)
     else:
-        print(f"🟢 Success: All {total_records} records successfully match the required data contract!")
+        print(f"🟢 Success: All {total_records} records successfully match the "
+              "required data contract!")
         sys.exit(0)
 
 
