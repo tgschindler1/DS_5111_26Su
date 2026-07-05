@@ -4,10 +4,11 @@ import sys
 import io
 import json
 import pytest
+import os
 from youtube_transcript_api import YouTubeTranscriptApi
 
 # Import the executable main entry point loop from your pipeline package directory
-from lab4.extract_transcripts import main
+from bin.extract_transcripts import main
 
 class MockTranscriptContainer:
     """Mimics the 2026 .to_raw_data() array output return schema"""
@@ -15,6 +16,11 @@ class MockTranscriptContainer:
         return [
             {"start": 10.5, "text": "Automated container tracking loop text entry."}
         ]
+
+@pytest.mark.skipif(
+    not os.getenv("GEMINI_API_KEY"),
+    reason="Requires live Gemini API key; only runs when credentials are present"
+)
 
 def test_extract_transcripts_main_pipeline_stream(monkeypatch, capsys):
     """
@@ -79,3 +85,27 @@ def test_extract_transcripts_bad_input(monkeypatch, capsys):
     
     assert parsed_json_line["video_id"] == "fake_video_999"
     assert "Automated container tracking" in parsed_json_line["raw_text"]
+
+
+@pytest.mark.parametrize("video_id,mock_text", [
+    ("fake_video_001", "Short single-line transcript text."),
+    ("fake_video_002", "A much longer transcript segment with multiple lines included here."),
+    ("fake_video_003", ""),
+])
+def test_extract_transcripts_various_inputs(monkeypatch, capsys, video_id, mock_text):
+    class MockTranscriptContainer:
+        def to_raw_data(self):
+            return [{"start": 0.0, "text": mock_text}]
+
+    def stubbed_fetch_route(self, vid):
+        return MockTranscriptContainer()
+
+    monkeypatch.setattr(YouTubeTranscriptApi, "fetch", stubbed_fetch_route)
+    monkeypatch.setattr(sys, "stdin", io.StringIO(f"{video_id}\n"))
+    main()
+    captured = capsys.readouterr()
+    stdout_lines = captured.out.strip().split("\n") if captured.out.strip() else []
+    if mock_text:
+        assert len(stdout_lines) == 1
+        parsed = json.loads(stdout_lines[0])
+        assert parsed["video_id"] == video_id
