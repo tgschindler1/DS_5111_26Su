@@ -61,9 +61,11 @@ make test_enrich
  
 
 
+## VM Set Up
+
 Instructions for running python virtual environment on a AWS virtual machine.
 
-## Step 1: Automating init of VM and setup of virtual environment
+### Step 1: Automating init of VM and setup of virtual environment
 
 We will be automating the sequence to recreate VM and setting up github credentials.
 
@@ -107,7 +109,7 @@ git config --global --list
 Make file executable with: ```bash chmod +x init_git_creds.sh```
 
 
-## Step 2: Clone Git Repo and run VM Init Scripts
+### Step 2: Clone Git Repo and run VM Init Scripts
 
 Test that your github key by running the following:
 
@@ -133,7 +135,7 @@ tree
 
 If successful, command will echo your github credentials and show the directory tree.
 
-## Step 3: Create Python Virtual Environment
+### Step 3: Create Python Virtual Environment
 
 In the root of your cloned repo, create a new file called ```bash makefile```:
 
@@ -166,7 +168,7 @@ And then verify with:
 pip list
 ```
 
-## Step 4: Commit and Push Changes to Your Repo
+### Step 4: Commit and Push Changes to Your Repo
 
 Run:
 ```bash
