@@ -1,0 +1,10 @@
+[MASTER]
+ignore=env,__pycache__,.git
+
+[FORMAT]
+max-line-length=100
+
+[MESSAGES CONTROL]
+# Intentionally NOT disabling too-few-public-methods or broad-exception-caught
+# here - those are suppressed inline per-instance so each exemption stays
+# visible and reviewable, per CI integrity requirements.
