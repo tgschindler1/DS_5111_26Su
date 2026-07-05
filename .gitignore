@@ -222,3 +222,6 @@ __marimo__/
 
 .venv/
 **/*.log
+__pycache__/
+*.pyc
+*.log
