@@ -1,4 +1,65 @@
-# DS_5111_26Su
+# 2605_DS5111_jzt6rv
+
+## Project Core Objective
+This pipeline extracts raw YouTube video transcripts, enriches them via the
+Gemini API (stripping timestamps, extracting technical terms and book
+references), and validates every output record against a strict JSON schema
+contract before it's considered pipeline-ready.
+
+## Bootstrapping Instructions
+
+Run this complete sequence to rebuild the stack from a fresh VM:
+
+```bash
+# 1. Clone the repository
+git clone git@github.com:tgschindler1/2605_DS5111_jzt6rv.git
+cd DS_5111_26Su
+
+# 2. Build the local virtual environment
+make env
+
+# 3. Install project dependencies into that environment
+make update
+
+# 4. Create your local .env file (see table below) at the repo root
+nano .env
+
+# 5. Verify everything is working (see Verification Steps below)
+make lint
+make test
+```
+
+## 3. Environment Configuration Variables
+
+Create a `.env` file at the repo root.
+ 
+| Variable                | Required | Purpose                                                                 |
+|--------------------------|----------|--------------------------------------------------------------------------|
+| `GEMINI_API_KEY`         | Yes      | Authenticates requests to the Gemini API in `bin/enrich_transcripts.py`. Pipeline exits immediately if missing. |
+| `WEBSHARE_USER`          | No       | Webshare proxy username. If unset (with `WEBSHARE_PASSWORD`), extraction falls back to direct local IP routing. |
+| `WEBSHARE_PASSWORD`      | No       | Webshare proxy password. Must be set together with `WEBSHARE_USER` to activate proxy routing. |
+
+## 4. Verification Steps
+ 
+After bootstrapping, confirm the environment is correctly configured:
+ 
+**Run the linter** 
+```bash
+make lint
+```
+ 
+**Run the full test suite** (includes parametrized cases, OS/environment
+skips, and known-gap `xfail` markers):
+```bash
+make test
+```
+ 
+**Run the pipeline end-to-end against mock data**:
+```bash
+make test_enrich
+```
+ 
+
 
 Instructions for running python virtual environment on a AWS virtual machine.
 
@@ -120,3 +181,5 @@ Verify that your commit is done and everything is up to date with:
 git log
 git status
 ```
+
+
