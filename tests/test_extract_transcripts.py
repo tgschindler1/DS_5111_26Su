@@ -10,7 +10,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from bin.extract_transcripts import main
 
 
-class MockTranscriptContainer:
+class MockTranscriptContainer: # pylint: disable=too-few-public-methods
     """Mimics the 2026 .to_raw_data() array output return schema."""
 
     def to_raw_data(self):
