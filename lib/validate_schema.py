@@ -1,50 +1,72 @@
 #!/usr/bin/env python3
+"""Validate JSON Lines records against the pipeline's enrichment data contract."""
+
 import sys
 import json
 
-def validate_payload(line_num, payload):
-    """
-    Validates a single line of JSON data against the target API contract.
-    Returns True if valid, False otherwise.
-    """
-    required_fields = ["video_id", "cleaned_text"]
-    optional_fields = ["tech_terms", "book_names"]
-    
-    # 1. Enforce top-level dictionary data structure
-    if not isinstance(payload, dict):
-        print(f"❌ [Row {line_num}] Schema Failure: Record is not a valid JSON Object.")
-        return False
+REQUIRED_FIELDS = ["video_id", "cleaned_text"]
+OPTIONAL_FIELDS = ["tech_terms", "book_names"]
 
-    # 2. Enforce Required Keys Presence
-    for field in required_fields:
+
+def _check_required_keys(line_num, payload):
+    """Return False and log an error if any required key is missing."""
+    for field in REQUIRED_FIELDS:
         if field not in payload:
             print(f"❌ [Row {line_num}] Schema Failure: Missing mandatory key '{field}'.")
             return False
+    return True
 
-    # 3. Enforce Required Value Data Types
+
+def _check_required_types(line_num, payload):
+    """Return False and log an error if required fields have the wrong type."""
     if not isinstance(payload["video_id"], str) or not payload["video_id"].strip():
         print(f"❌ [Row {line_num}] Type Failure: 'video_id' must be a non-empty STRING.")
         return False
-        
+
     if not isinstance(payload["cleaned_text"], str):
         print(f"❌ [Row {line_num}] Type Failure: 'cleaned_text' must be a STRING.")
         return False
 
-    # 4. Enforce Optional Key Structure and Type Safety
-    for field in optional_fields:
-        if field in payload:
-            if not isinstance(payload[field], list):
-                print(f"❌ [Row {line_num}] Type Failure: '{field}' must be an ARRAY (Python list).")
-                return False
-            
-            # Ensure every element inside the array is a string primitive
-            if not all(isinstance(item, str) for item in payload[field]):
-                print(f"❌ [Row {line_num}] Type Failure: All elements inside '{field}' must be STRINGS.")
-                return False
-                
     return True
 
+
+def _check_optional_types(line_num, payload):
+    """Return False and log an error if optional array fields are malformed."""
+    for field in OPTIONAL_FIELDS:
+        if field not in payload:
+            continue
+
+        if not isinstance(payload[field], list):
+            print(f"❌ [Row {line_num}] Type Failure: '{field}' must be an ARRAY (Python list).")
+            return False
+
+        if not all(isinstance(item, str) for item in payload[field]):
+            print(
+                f"❌ [Row {line_num}] Type Failure: All elements inside '{field}' must be STRINGS."
+            )
+            return False
+
+    return True
+
+
+def validate_payload(line_num, payload):
+    """
+    Validate a single line of JSON data against the target API contract.
+    Returns True if valid, False otherwise.
+    """
+    if not isinstance(payload, dict):
+        print(f"❌ [Row {line_num}] Schema Failure: Record is not a valid JSON Object.")
+        return False
+
+    return (
+        _check_required_keys(line_num, payload)
+        and _check_required_types(line_num, payload)
+        and _check_optional_types(line_num, payload)
+    )
+
+
 def main():
+    """Read JSON Lines from stdin and validate each record against the schema contract."""
     print("🚀 Starting pipeline data contract validation...")
     total_records = 0
     failed_records = 0
@@ -53,7 +75,7 @@ def main():
         line = line.strip()
         if not line:
             continue
-            
+
         total_records += 1
         try:
             data = json.loads(line)
@@ -73,6 +95,7 @@ def main():
     else:
         print(f"🟢 Success: All {total_records} records successfully match the required data contract!")
         sys.exit(0)
+
 
 if __name__ == '__main__':
     main()
