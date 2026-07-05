@@ -93,7 +93,7 @@ def test_extract_transcripts_bad_input(monkeypatch, capsys):
 def test_extract_transcripts_various_inputs(monkeypatch, capsys, video_id, mock_text):
     """Extraction should emit a JSON row for non-empty transcripts, and nothing for empty ones."""
 
-    class ParametrizedMockTranscriptContainer:
+    class ParametrizedMockTranscriptContainer: # pylint: disable=too-few-public-methods
         """Mimics .to_raw_data() with a caller-supplied mock text payload."""
 
         def to_raw_data(self):
