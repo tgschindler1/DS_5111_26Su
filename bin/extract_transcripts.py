@@ -18,6 +18,8 @@ class TranscriptExtractor(ABC):
     """Interface for a strategy that turns a source identifier into raw text."""
 
     # pylint: disable=too-few-public-methods
+    # This is an intentionally minimal Strategy interface; a single
+    # abstract method is the whole contract.
     @abstractmethod
     def fetch_raw_string(self, source_id: str) -> str:
         """Must accept an identifier string and return raw, unstructured text data."""
@@ -35,6 +37,8 @@ class YouTubeExtractor(TranscriptExtractor):
 
     def fetch_raw_string(self, source_id: str) -> str:
         # pylint: disable=import-outside-toplevel
+        # Deferred import: this dependency is optional and only needed
+        # when the youtube strategy is actually selected.
         from youtube_transcript_api import YouTubeTranscriptApi
 
         original_http = os.environ.get("HTTP_PROXY")
@@ -46,6 +50,9 @@ class YouTubeExtractor(TranscriptExtractor):
 
         try:
             # pylint: disable=no-member
+            # Old and new versions of youtube_transcript_api expose
+            # different call surfaces; the hasattr checks below pick
+            # whichever is available at runtime.
             if hasattr(YouTubeTranscriptApi, "get_transcript"):
                 proxies_dict = (
                     {"http": self.proxy_url, "https": self.proxy_url}
@@ -93,6 +100,8 @@ class PodcastRssExtractor(TranscriptExtractor):
 
     def fetch_raw_string(self, source_id: str) -> str:
         # pylint: disable=import-outside-toplevel
+        # Deferred import: these dependencies are only needed when the
+        # podcast strategy is actually selected.
         import requests
         import xml.etree.ElementTree as ET
 
@@ -142,6 +151,7 @@ class ExtractionEngine:
             try:
                 raw_text = self.strategy.fetch_raw_string(source_id)
 
+                # Kept identical legacy key schema names to protect older tests
                 payload = {
                     "video_id": source_id,
                     "raw_text": raw_text,
@@ -150,6 +160,8 @@ class ExtractionEngine:
                 sys.stdout.flush()
 
             # pylint: disable=broad-exception-caught
+            # Intentionally broad: one bad source_id must not abort the
+            # rest of the stream. Errors are reported per-line on stderr.
             except Exception as e:
                 sys.stderr.write(f"ERROR processing token [{source_id}]: {str(e)}\n")
                 sys.stderr.flush()
@@ -169,7 +181,8 @@ def main(argv=None):
     )
     parser.add_argument("--proxy", default=None, help="Optional proxy endpoint URL string.")
 
-    # Accept an optional argv list so tests can call main() directly.
+    if argv is None:
+        argv = []
     args = parser.parse_args(argv)
 
     if args.source == "youtube":
@@ -184,4 +197,4 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
