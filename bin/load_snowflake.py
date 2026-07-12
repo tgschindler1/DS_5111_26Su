@@ -33,11 +33,25 @@ def main():
         logging.critical("Missing critical Snowflake runtime credential bindings. Ingestion aborted.")
         sys.exit(1)
 
+    sf_schema = os.getenv('SF_SCHEMA')
+    sf_account = os.getenv('SF_ACCOUNT')
+    sf_warehouse = os.getenv('SF_WAREHOUSE')
+    sf_database = os.getenv('SF_DATABASE')
+    sf_role = os.getenv('SF_ROLE')
+
     try:
         # Pass the pre-extracted user/password variables along with remaining context configs
         ### TODO 1 CODE START HERE
-        # ctx = snowflake.connector.connect(...)
-        # cs = ctx.cursor()
+        ctx = snowflake.connector.connect(
+            user=sf_user,
+            password=sf_password,
+            account=sf_account,
+            warehouse=sf_warehouse,
+            database=sf_database,
+            schema=sf_schema,
+            role=sf_role,
+        )
+        cs = ctx.cursor()
         pass
         ### TODO 1 CODE END HERE
     except Exception as e:
