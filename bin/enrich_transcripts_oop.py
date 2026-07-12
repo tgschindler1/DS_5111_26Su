@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """Enrich raw transcript text via LLM, extracting technical terms and book names."""
 
+import sys
+import os
+import json
+import logging
 from abc import ABC, abstractmethod
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 
 class LLMStrategy(ABC):
     """Interface for a strategy that enriches raw transcript text via an LLM."""
@@ -9,5 +16,73 @@ class LLMStrategy(ABC):
     # pylint: disable=too-few-public-methods
 
     @abstractmethod
-    def enrich(self, payload: dict) -> str:
-        """Must accept a payload dict and return response string"""
+    def enrich(self, video_id: str, raw_text: str) -> str:
+        """Must accept video id and raw text string and return response string"""
+
+class GeminiStrategy(LLMStrategy):
+    """Enriches transcripts via Gemini; strips timestamps and extracts
+	technical terms and books"""
+
+    # pylint: disable=too-few-public-methods
+
+
+    response_schema = {
+        "type": "OBJECT",
+        "properties": {
+            "video_id": {
+                "type": "STRING"
+            },
+            "cleaned_text": {
+                "type": "STRING"
+            },
+            "tech_terms": {
+                "type": "ARRAY",
+                "items": {
+                    "type": "STRING"
+                }
+            },
+            "book_names": {
+                "type": "ARRAY",
+                "items": {
+                    "type": "STRING"
+                }
+            }
+        },
+        "required": [
+            "video_id",
+            "cleaned_text"
+        ]
+    }
+
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash"):
+        if not api_key:
+            raise ValueError("Missing GEMINI_API_KEY.")
+        self.client = genai.Client(api_key=api_key)
+        self.model = model
+
+    def enrich(self, video_id: str, raw_text: str) -> str:
+        """Takes video id and raw text strings and returns the raw
+	   JSON string response from Gemini"""
+
+        prompt = (
+            "You are an elite data engineer. "
+            f"Clean this transcript text for video_id '{video_id}'.\n"
+            "1. Strip all timestamps and duration codes.\n"
+            "2. Extract technical architecture terms and books.\n"
+        )
+
+
+        try:
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=f"{prompt}\n\nTranscript:\n{raw_text}",
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=self.response_schema,
+                ),
+            )
+            return response.text
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed processing video {video_id} during LLM generation: {str(e)}"
+            ) from e
