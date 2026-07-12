@@ -7,7 +7,7 @@ import json
 import os
 import pytest
 from google.genai.models import Models
-from bin.enrich_transcripts import main
+from bin.enrich_transcripts import main, TranscriptEnricher, MockLLMStrategy
 
 
 class MockGeminiResponse: # pylint: disable=too-few-public-methods
@@ -64,3 +64,27 @@ def test_enrich_transcripts_malformed_input(monkeypatch, capsys):
     main()
     captured = capsys.readouterr()
     assert captured.out.strip() == ""
+
+
+def test_transcript_enricher_mock_pipeline(monkeypatch, capsys):
+    """Tests that TranscriptEnricher correctly reads mock lines from stdin
+    using MockLLMStrategy and streams verified JSON objects out to stdout
+    without making live API network requests."""
+    mock_input_row = {
+        "video_id": "ds5111_v001",
+        "raw_text": "00:01 Welcome to class. Today we are testing mock frameworks.",
+    }
+    mock_stdin = io.StringIO(json.dumps(mock_input_row) + "\n")
+    monkeypatch.setattr(sys, "stdin", mock_stdin)
+
+    engine = TranscriptEnricher(MockLLMStrategy())
+    engine.run_stream()
+
+    captured = capsys.readouterr()
+    stdout_lines = captured.out.strip().split("\n")
+
+    assert len(stdout_lines) == 1
+    parsed_output = json.loads(stdout_lines[0])
+    assert parsed_output["video_id"] == "ds5111_v001"
+    assert "SELECT" in parsed_output["tech_terms"]
+    assert "Designing Data-Intensive Applications" in parsed_output["book_names"]
