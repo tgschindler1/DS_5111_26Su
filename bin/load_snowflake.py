@@ -9,7 +9,7 @@ from dotenv import load_dotenv  # <-- Added to support standard .env loading
 
 # Establish clean centralized diagnostic logging metrics output footprint
 logging.basicConfig(
-    filename='pipeline/logs/pipeline_audit.log',
+    filename='logs/pipeline_audit.log',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
@@ -52,7 +52,7 @@ def main():
             role=sf_role,
         )
         cs = ctx.cursor()
-        pass
+
         ### TODO 1 CODE END HERE
     except Exception as e:
         logging.critical(f"Snowflake Authorization Context Handshake Failed: {str(e)}")
@@ -67,8 +67,13 @@ def main():
     # -------------------------------------------------------------------------
     try:
         ### TODO 2 CODE START
-        # cs.execute(...)
-        pass
+        cs.execute("""
+        CREATE TABLE IF NOT EXISTS RAW_TRANSCRIPTS (
+            json_payload VARIANT,
+            inserted_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+            )
+        """)
+
         ### TODO 2 CODE END
     except Exception as e:
         logging.error(f"Failed to execute target structural validation DDL: {str(e)}")
@@ -99,7 +104,10 @@ def main():
             # validated python dictionary cleanly back into a serialized string payload.
 
             ### TODO 3 CODE START
-            # cs.execute(..., ...)
+            cs.execute(
+                "INSERT INTO RAW_TRANSCRIPTS (json_payload) SELECT PARSE_JSON(%s)",
+                (json.dumps(json_data),)
+            )
             ### TODO 3 CODE END
 
             # Left intact from your original template design:
@@ -113,8 +121,8 @@ def main():
     # out down to the operating system runtime container layout.
     # -------------------------------------------------------------------------
     ### TODO 4 CODE START
-    # cs.close()
-    # ctx.close()
+    cs.close()
+    ctx.close()
     ### TODO 4 CODE END
     logging.info("Pipeline Step 3 finished execution cycles cleanly.")
 

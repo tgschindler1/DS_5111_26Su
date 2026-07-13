@@ -22,3 +22,8 @@ test: lint
 
 test_enrich:
 	cat data/mock_transcripts.jsonl | $(PYTHON) -u bin/enrich_transcripts.py | $(PYTHON) bin/validate_schema.py
+
+.PHONY: load
+load:
+	@echo "Initiating Cloud Data Warehouse Synchronizer Node..."
+	cat data/enriched_transcripts.jsonl | python bin/load_snowflake.py
