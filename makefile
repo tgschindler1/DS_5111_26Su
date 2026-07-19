@@ -3,6 +3,13 @@ PYTHON = $(ENV)/bin/python3
 PIP = $(ENV)/bin/pip
 PYLINT = $(ENV)/bin/pylint
 PYTEST = $(ENV)/bin/pytest
+DOCKERHUB_USERNAME ?= jzt6rv
+IMAGE_NAME = ds5111-pipeline
+IMAGE_TAG = latest
+IMAGE_FULL = $(DOCKERHUB_USERNAME)/$(IMAGE_NAME):$(IMAGE_TAG)
+DATA_FILE = data/youtube_ids.txt
+ENV_FILE = .env
+
 
 default:
 	@cat makefile
@@ -27,3 +34,22 @@ test_enrich:
 load:
 	@echo "Initiating Cloud Data Warehouse Synchronizer Node..."
 	cat data/enriched_transcripts.jsonl | python bin/load_snowflake.py
+
+.PHONY: docker-build docker-images docker-build-verify \
+        test-clean-ids test-pipeline
+
+docker-build:
+	docker build -t $(IMAGE_FULL) .
+
+docker-images:
+	docker images
+
+docker-build-verify: docker-build
+	docker images | grep $(DOCKERHUB_USERNAME)/$(IMAGE_NAME)
+
+test-clean-ids:
+	cat $(DATA_FILE) | docker run -i $(IMAGE_FULL)
+
+test-pipeline:
+	cat $(DATA_FILE) | docker run -i --env-file $(ENV_FILE) $(IMAGE_FULL) \
+		bash -c "python bin/clean_ids.py | python bin/extract_transcripts.py"
