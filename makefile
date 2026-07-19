@@ -47,9 +47,12 @@ docker-images:
 docker-build-verify: docker-build
 	docker images | grep $(DOCKERHUB_USERNAME)/$(IMAGE_NAME)
 
-test-clean-ids:
+test_clean_ids:
 	cat $(DATA_FILE) | docker run -i $(IMAGE_FULL)
 
-test-pipeline:
+test_pipeline:
 	cat $(DATA_FILE) | docker run -i --env-file $(ENV_FILE) $(IMAGE_FULL) \
-		bash -c "python bin/clean_ids.py | python bin/extract_transcripts.py"
+		bash -c "python bin/clean_ids.py | python bin/extract_transcripts.py | python bin/enrich_transcripts.py | python bin/load_snowflake.py; cat logs/pipeline_audit.log"
+
+pipeline-run:
+	cat $(DATA_FILE) | docker run -i --env-file .env $(IMAGE_FULL)

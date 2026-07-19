@@ -15,4 +15,4 @@ COPY bin/ ./bin/
 RUN mkdir -p logs/
 
 # Step 6: Define the default interactive streaming entrypoint target command
-CMD ["sh", "-c", "python bin/clean_ids.py"]
+CMD ["sh", "-c", "python bin/clean_ids.py | python bin/extract_transcripts.py | python bin/load_snowflake.py"]
