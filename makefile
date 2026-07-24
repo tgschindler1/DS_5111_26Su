@@ -1,17 +1,24 @@
+ENV = env
+PYTHON = $(ENV)/bin/python3
+PIP = $(ENV)/bin/pip
+PYLINT = $(ENV)/bin/pylint
+PYTEST = $(ENV)/bin/pytest
+
 default:
 	@cat makefile
 
 env:
-	python3 -m venv env; . env/bin/activate; pip install --upgrade pip
+	python3 -m venv $(ENV)
+	$(PIP) install --upgrade pip
 
 update: env
-	. env/bin/activate; pip install -r requirements.txt
+	$(PIP) install -r requirements.txt
 
 lint:
-	. env/bin/activate; pylint lab2/clean_ids.py || true
+	$(PYTHON) -m pylint bin/ lib/ tests/
 
 test: lint
-	. env/bin/activate; pytest -vv tests
+	$(PYTEST) -vv tests
 
 test_enrich:
-	@. env/bin/activate && cat mock_transcripts.jsonl | python -u lab5/enrich_transcripts.py | python lab5/validate_schema.py
+	cat data/mock_transcripts.jsonl | $(PYTHON) -u bin/enrich_transcripts.py | $(PYTHON) bin/validate_schema.py
