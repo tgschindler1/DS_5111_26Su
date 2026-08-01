@@ -1,0 +1,9 @@
+name: 'ds5111_transforms'
+version: '1.0.0'
+config-version: 2
+profile: 'default'
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
